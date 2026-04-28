@@ -1,0 +1,146 @@
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: etudiants-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: etudiants_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - etudiants-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d etudiants_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis Cache ─────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: etudiants-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - etudiants-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Eureka Server (registre de services) ────────────────
+  eureka-server:
+    build:
+      context: ./eureka-server
+      dockerfile: Dockerfile
+    container_name: eureka-server
+    restart: on-failure
+    ports:
+      - "8761:8761"
+    networks:
+      - etudiants-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8761/actuator/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  # ── Micro service étudiant ──────────────────────────────
+  etudiant-service:
+    build:
+      context: ./api-spring-boot
+      dockerfile: Dockerfile
+    container_name: etudiant-service
+    restart: on-failure
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: 8081
+      SPRING_APPLICATION_NAME: etudiant-service
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/etudiants_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - etudiants-network
+
+  # ── Micro service notes (grading) ──────────────────────
+  grading-service:
+    build:
+      context: ./grading-service
+      dockerfile: Dockerfile
+    container_name: grading-service
+    restart: on-failure
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/etudiants_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - etudiants-network
+
+  # ── API Gateway (point d'entrée unique) ─────────────────
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    restart: on-failure
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - etudiants-network
+
+  # ── Frontend Next.js ────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: etudiants-frontend
+    restart: on-failure
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_GATEWAY_URL: http://api-gateway:8080
+    depends_on:
+      - api-gateway
+    networks:
+      - etudiants-network
+
+volumes:
+  postgres_data:
+
+networks:
+  etudiants-network:
+    driver: bridge

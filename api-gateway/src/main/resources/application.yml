@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      # Activer la découverte de services via Eureka
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+      routes:
+        # Route vers etudiant-service
+        - id: etudiant-service
+          uri: lb://etudiant-service
+          predicates:
+            - Path=/api/etudiants/**,/api/departements/**
+
+        # Route vers grading-service
+        - id: grading-service
+          uri: lb://grading-service
+          predicates:
+            - Path=/api/notes/**
+
+      # CORS global — autorise le frontend Next.js
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+
+server:
+  port: 8080
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka}
+  instance:
+    prefer-ip-address: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG

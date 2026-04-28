@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎓 Gestion des Étudiants</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #333; }
+
+    header {
+      background: #1a73e8;
+      color: white;
+      padding: 24px 32px;
+    }
+    header h1 { font-size: 1.8rem; }
+    header p { opacity: 0.85; margin-top: 4px; }
+
+    main { padding: 32px; max-width: 1000px; margin: auto; }
+
+    #stats {
+      display: flex; gap: 16px; margin-bottom: 24px;
+    }
+    .stat-card {
+      background: white; border-radius: 12px; padding: 20px 28px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08); flex: 1; text-align: center;
+    }
+    .stat-card .number { font-size: 2rem; font-weight: 700; color: #1a73e8; }
+    .stat-card .label { color: #888; font-size: 0.9rem; margin-top: 4px; }
+
+    #filter-bar { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; }
+    #filter-bar input {
+      padding: 10px 16px; border: 1px solid #ddd; border-radius: 8px;
+      font-size: 1rem; width: 200px;
+    }
+    #filter-bar button {
+      padding: 10px 20px; background: #1a73e8; color: white;
+      border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem;
+    }
+    #filter-bar button:hover { background: #1558b0; }
+    #reset-btn { background: #e8eaed; color: #333; }
+    #reset-btn:hover { background: #dadce0; }
+
+    table {
+      width: 100%; border-collapse: collapse;
+      background: white; border-radius: 12px; overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    thead { background: #1a73e8; color: white; }
+    th { padding: 14px 18px; text-align: left; font-weight: 600; }
+    td { padding: 13px 18px; border-bottom: 1px solid #f0f0f0; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8f9ff; }
+
+    .badge {
+      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      font-size: 0.8rem; font-weight: 600;
+      background: #e8f0fe; color: #1a73e8;
+    }
+
+    .avatar {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px; border-radius: 50%;
+      background: #1a73e8; color: white; font-weight: 700;
+      margin-right: 10px; font-size: 0.95rem;
+    }
+
+    #loading { text-align: center; padding: 60px; color: #888; font-size: 1.1rem; }
+    #error { text-align: center; padding: 40px; color: #c0392b; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🎓 Gestion des Étudiants</h1>
+  <p>Interface web — API Spring Boot</p>
+</header>
+
+<main>
+  <div id="stats">
+    <div class="stat-card">
+      <div class="number" id="total">—</div>
+      <div class="label">Total étudiants</div>
+    </div>
+    <div class="stat-card">
+      <div class="number" id="avg-age">—</div>
+      <div class="label">Âge moyen</div>
+    </div>
+  </div>
+
+  <div id="filter-bar">
+    <input type="number" id="annee-input" placeholder="Année d'inscription (ex: 2020)" min="2000" max="2030"/>
+    <button onclick="filterByAnnee()">🔍 Filtrer</button>
+    <button id="reset-btn" onclick="loadAll()">✕ Réinitialiser</button>
+  </div>
+
+  <div id="loading">⏳ Chargement des étudiants...</div>
+  <div id="error" style="display:none"></div>
+
+  <table id="table" style="display:none">
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>CIN</th>
+        <th>Date de naissance</th>
+        <th>Âge</th>
+        <th>Année inscription</th>
+        <th>Département</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</main>
+
+<script>
+  const API = '/api/etudiants';
+
+  function formatDate(d) {
+    return new Date(d).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
+  }
+
+  function renderTable(data) {
+    const tbody = document.getElementById('tbody');
+    tbody.innerHTML = '';
+
+    if (data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;padding:30px">Aucun étudiant trouvé.</td></tr>';
+    }
+
+    data.forEach(e => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><span class="avatar">${e.nom[0].toUpperCase()}</span>${e.nom}</td>
+        <td>${e.cin}</td>
+        <td>${formatDate(e.dateNaissance)}</td>
+        <td><span class="badge">${e.age} ans</span></td>
+        <td>${e.anneePremiereInscription || '—'}</td>
+        <td>${e.departementNom ? `<span class="badge">${e.departementNom}</span>` : '—'}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // Stats
+    document.getElementById('total').textContent = data.length;
+    if (data.length > 0) {
+      const avg = Math.round(data.reduce((s, e) => s + e.age, 0) / data.length);
+      document.getElementById('avg-age').textContent = avg + ' ans';
+    }
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('table').style.display = 'table';
+  }
+
+  function loadAll() {
+    document.getElementById('annee-input').value = '';
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('table').style.display = 'none';
+    fetch(API)
+      .then(r => r.json())
+      .then(renderTable)
+      .catch(err => {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error').style.display = 'block';
+        document.getElementById('error').textContent = '⚠️ Impossible de contacter l\'API : ' + err.message;
+      });
+  }
+
+  function filterByAnnee() {
+    const annee = document.getElementById('annee-input').value;
+    if (!annee) { loadAll(); return; }
+    fetch(`${API}?annee=${annee}`)
+      .then(r => r.json())
+      .then(renderTable);
+  }
+
+  // Chargement initial
+  loadAll();
+</script>
+</body>
+</html>
