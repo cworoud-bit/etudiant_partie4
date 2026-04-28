@@ -3,18 +3,28 @@
 import { useEffect, useState } from 'react';
 import DepartementForm from '../../components/DepartementForm';
 
-const API = process.env.NEXT_PUBLIC_API_GATEWAY_URL || 'http://localhost:8080';
+const API = process.env.NEXT_PUBLIC_API_GATEWAY_URL || 'http://localhost:8081';
 
 export default function DepartementsPage() {
   const [departements, setDepartements] = useState<any[]>([]);
   const [editing, setEditing] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const fetchDepts = async () => {
     setLoading(true);
-    const data = await fetch(`${API}/api/departements`).then(r => r.json());
-    setDepartements(data);
-    setLoading(false);
+    setError('');
+    try {
+      const res = await fetch(`${API}/api/departements`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      // Normaliser : tableau direct ou objet paginé Spring { content: [...] }
+      setDepartements(Array.isArray(data) ? data : (data.content ?? []));
+    } catch (e: any) {
+      setError(e.message || 'Erreur inconnue');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchDepts(); }, []);
@@ -38,6 +48,12 @@ export default function DepartementsPage() {
 
         {loading ? (
             <p className="text-gray-500">Chargement...</p>
+        ) : error ? (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-600 text-sm">
+              ⚠️ Impossible de joindre l&apos;API : <strong>{error}</strong>
+              <br/>
+              <span className="text-xs text-red-400">Vérifiez que le backend tourne sur {API}</span>
+            </div>
         ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {departements.map(d => (

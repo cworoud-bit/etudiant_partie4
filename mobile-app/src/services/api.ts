@@ -1,5 +1,5 @@
 // Toutes les requêtes passent par l'API Gateway
-const API_GATEWAY = 'http://10.0.2.2:8080'; // Android emulator → localhost
+const API_GATEWAY = 'http://10.0.2.2:8081'; // Android emulator → localhost
 
 export const api = {
   // Départements

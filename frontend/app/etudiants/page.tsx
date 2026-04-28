@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import EtudiantCard from '../../components/EtudiantCard';
 
-const API = process.env.NEXT_PUBLIC_API_GATEWAY_URL || 'http://localhost:8080';
+let process;
+const API = process.env.NEXT_PUBLIC_API_GATEWAY_URL || 'http://localhost:8081';
 
 export default function EtudiantsPage() {
   const [etudiants, setEtudiants] = useState<any[]>([]);

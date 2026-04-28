@@ -120,14 +120,18 @@
   }
 
   function renderTable(data) {
+    // Sécurisation : Spring Boot peut retourner un objet paginé { content: [...] }
+    // ou directement un tableau. On normalise ici.
+    const list = Array.isArray(data) ? data : (data.content ?? []);
+
     const tbody = document.getElementById('tbody');
     tbody.innerHTML = '';
 
-    if (data.length === 0) {
+    if (list.length === 0) {
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;padding:30px">Aucun étudiant trouvé.</td></tr>';
     }
 
-    data.forEach(e => {
+    list.forEach(e => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td><span class="avatar">${e.nom[0].toUpperCase()}</span>${e.nom}</td>
@@ -141,9 +145,9 @@
     });
 
     // Stats
-    document.getElementById('total').textContent = data.length;
-    if (data.length > 0) {
-      const avg = Math.round(data.reduce((s, e) => s + e.age, 0) / data.length);
+    document.getElementById('total').textContent = list.length;
+    if (list.length > 0) {
+      const avg = Math.round(list.reduce((s, e) => s + e.age, 0) / list.length);
       document.getElementById('avg-age').textContent = avg + ' ans';
     }
 
@@ -155,8 +159,12 @@
     document.getElementById('annee-input').value = '';
     document.getElementById('loading').style.display = 'block';
     document.getElementById('table').style.display = 'none';
+    document.getElementById('error').style.display = 'none';
     fetch(API)
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error('HTTP ' + r.status + ' — vérifiez que le backend tourne sur le port 8081');
+        return r.json();
+      })
       .then(renderTable)
       .catch(err => {
         document.getElementById('loading').style.display = 'none';
@@ -168,9 +176,20 @@
   function filterByAnnee() {
     const annee = document.getElementById('annee-input').value;
     if (!annee) { loadAll(); return; }
-    fetch(`${API}?annee=${annee}`)
-      .then(r => r.json())
-      .then(renderTable);
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('table').style.display = 'none';
+    document.getElementById('error').style.display = 'none';
+    fetch(API + '?annee=' + annee)
+      .then(r => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(renderTable)
+      .catch(err => {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error').style.display = 'block';
+        document.getElementById('error').textContent = '⚠️ Erreur : ' + err.message;
+      });
   }
 
   // Chargement initial
