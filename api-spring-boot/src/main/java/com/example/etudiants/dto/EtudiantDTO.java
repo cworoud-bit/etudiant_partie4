@@ -1,16 +1,25 @@
 package com.example.etudiants.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
 @Data
 @Builder
-public class EtudiantDTO {
+@NoArgsConstructor      // ✅ Requis pour Redis deserialize
+@AllArgsConstructor     // ✅ Requis par @Builder avec @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)  // ✅ Sécurité cache
+public class EtudiantDTO implements Serializable {  // ✅ Requis pour Redis
+
+    private static final long serialVersionUID = 1L;
 
     private Long id;
 

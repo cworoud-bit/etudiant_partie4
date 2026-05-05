@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import DepartementForm from '../../components/DepartementForm';
 
-const API = process.env.NEXT_PUBLIC_API_GATEWAY_URL || 'http://localhost:8081';
+const API = process.env.NEXT_PUBLIC_API_GATEWAY_URL || 'http://localhost:8888';
 
 export default function DepartementsPage() {
   const [departements, setDepartements] = useState<any[]>([]);

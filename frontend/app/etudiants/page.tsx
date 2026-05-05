@@ -3,10 +3,9 @@
 import { useEffect, useState } from 'react';
 import EtudiantCard from '../../components/EtudiantCard';
 
-let process;
-const API = process.env.NEXT_PUBLIC_API_GATEWAY_URL || 'http://localhost:8081';
-
 export default function EtudiantsPage() {
+
+  const API = process.env.NEXT_PUBLIC_API_GATEWAY_URL || 'http://localhost:8888';
   const [etudiants, setEtudiants] = useState<any[]>([]);
   const [departements, setDepartements] = useState<any[]>([]);
   const [selectedDept, setSelectedDept] = useState<string>('');
@@ -18,8 +17,8 @@ export default function EtudiantsPage() {
       fetch(`${API}/api/etudiants`).then(r => r.json()),
       fetch(`${API}/api/departements`).then(r => r.json()),
     ]);
-    setEtudiants(e);
-    setDepartements(d);
+    setEtudiants(Array.isArray(e) ? e : []);
+    setDepartements(Array.isArray(d) ? d : []);
     setLoading(false);
   };
 
@@ -31,8 +30,9 @@ export default function EtudiantsPage() {
     fetchData();
   };
 
+  // ✅ e.departement.id au lieu de e.departementId
   const filtered = selectedDept
-      ? etudiants.filter(e => String(e.departementId) === selectedDept)
+      ? etudiants.filter(e => String(e.departement?.id) === selectedDept)
       : etudiants;
 
   return (

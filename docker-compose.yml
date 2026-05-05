@@ -127,6 +127,9 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      # ✅ NEXT_PUBLIC_ variables doivent être passées au moment du BUILD
+      args:
+        NEXT_PUBLIC_API_GATEWAY_URL: http://localhost:8888
     container_name: etudiants-frontend
     restart: on-failure
     ports:

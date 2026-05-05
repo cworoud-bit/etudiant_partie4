@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-const API = process.env.NEXT_PUBLIC_API_GATEWAY_URL || 'http://localhost:8081';
+const API = process.env.NEXT_PUBLIC_API_GATEWAY_URL || 'http://localhost:8888';
 
 interface DepartementFormProps {
   onSaved: () => void;

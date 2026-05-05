@@ -10,17 +10,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableCaching  // Q13 — Active le cache Redis
 public class AppConfig {
 
-    // CORS global
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins("*")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowedHeaders("*");
-            }
-        };
+
     }
 }
