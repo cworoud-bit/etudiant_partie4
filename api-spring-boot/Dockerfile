@@ -9,6 +9,10 @@ RUN mvn clean package -DskipTests
 # ── Étape 2 : Image finale légère ───────────────────────
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
+
+# Copier le jar avec le nom exact du pom.xml
 COPY --from=build /app/target/etudiants-api-2.0.0.jar app.jar
-EXPOSE 8080
+
+EXPOSE 8081
+
 ENTRYPOINT ["java", "-jar", "app.jar"]

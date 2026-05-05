@@ -25,9 +25,11 @@ spring:
 
       # CORS global — autorise le frontend Next.js
       globalcors:
+        # Hetha y'na7i el headers el m3awda ki yabda el microservice zeyyed men 3andou
+        add-to-idm-headers: false
         cors-configurations:
           '[/**]':
-            allowedOrigins: "*"
+            allowedOrigins: "http://localhost:3000"
             allowedMethods:
               - GET
               - POST
@@ -42,7 +44,7 @@ server:
 eureka:
   client:
     service-url:
-      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka}
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://eureka-server:8761/eureka}
   instance:
     prefer-ip-address: true
 

@@ -1,0 +1,3 @@
+/app/src/test/java/com/example/etudiants/bdd/EtudiantSteps.java
+/app/src/test/java/com/example/etudiants/service/EtudiantServiceTest.java
+/app/src/test/java/com/example/etudiants/bdd/CucumberRunner.java

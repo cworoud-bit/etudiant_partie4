@@ -1,0 +1,17 @@
+/app/src/main/java/com/example/etudiants/repository/DepartementRepository.java
+/app/src/main/java/com/example/etudiants/service/EtudiantService.java
+/app/src/main/java/com/example/etudiants/entity/Departement.java
+/app/src/main/java/com/example/etudiants/entity/Etudiant.java
+/app/src/main/java/com/example/etudiants/config/AppConfig.java
+/app/src/main/java/com/example/etudiants/controller/DepartementController.java
+/app/src/main/java/com/example/etudiants/EtudiantsApiApplication.java
+/app/src/main/java/com/example/etudiants/config/ErrorResponse.java
+/app/src/main/java/com/example/etudiants/dto/EtudiantDTO.java
+/app/src/main/java/com/example/etudiants/controller/EtudiantController.java
+/app/src/main/java/com/example/etudiants/dto/DepartementDTO.java
+/app/src/main/java/com/example/etudiants/mapper/DepartementMapper.java
+/app/src/main/java/com/example/etudiants/config/GlobalExceptionHandler.java
+/app/src/main/java/com/example/etudiants/mapper/EtudiantMapper.java
+/app/src/main/java/com/example/etudiants/repository/EtudiantRepository.java
+/app/src/main/java/com/example/etudiants/service/DepartementService.java
+/app/src/main/java/com/example/etudiants/config/ResourceNotFoundException.java

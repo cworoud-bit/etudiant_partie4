@@ -1,15 +1,14 @@
 package com.example.etudiants.config;
 
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.client.RestTemplate;
 
 @Configuration
-@EnableCaching  // Q13 — Active le cache Redis
 public class AppConfig {
 
-
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 }
