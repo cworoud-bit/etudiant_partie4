@@ -14,50 +14,25 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
+@RequiredArgsConstructor // Ta3mel injection wa7edha lel variables 'final'
 public class NoteService {
 
+    // Khalli hethom barka w zidhom 'final'
     private final NoteRepository repository;
     private final NoteMapper mapper;
     private final EtudiantClient etudiantClient;
 
-    public List<NoteDTO> findAll() {
-        return repository.findAll().stream().map(mapper::toDTO).collect(Collectors.toList());
-    }
-
-    public List<NoteDTO> findByStudentId(Long studentId) {
-        return repository.findByStudentId(studentId).stream().map(mapper::toDTO).collect(Collectors.toList());
-    }
-
-    public NoteDTO findById(Long id) {
-        Note note = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Note introuvable avec l'ID : " + id));
-        return mapper.toDTO(note);
-    }
-
     public NoteDTO save(NoteDTO dto) {
-        // Vérifier existence de l'étudiant via Feign → Eureka
         try {
+            // Feign bech ylawweb 3la "etudiant-service" fi Eureka
             etudiantClient.getEtudiantById(dto.getStudentId());
-        } catch (FeignException.NotFound e) {
-            throw new IllegalArgumentException("Étudiant introuvable avec l'ID : " + dto.getStudentId());
+        } catch (Exception e) {
+            // Ken Eureka mazel ma feyi7ch bel service wala l'issem ghalet, bech ya3tik hna error
+            throw new IllegalArgumentException("Étudiant introuvable wala service taye7!");
         }
         Note saved = repository.save(mapper.toEntity(dto));
         return mapper.toDTO(saved);
     }
 
-    public NoteDTO update(Long id, NoteDTO dto) {
-        Note existing = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Note introuvable avec l'ID : " + id));
-        existing.setMatiere(dto.getMatiere());
-        existing.setValeur(dto.getValeur());
-        return mapper.toDTO(repository.save(existing));
-    }
-
-    public void delete(Long id) {
-        if (!repository.existsById(id)) {
-            throw new ResourceNotFoundException("Note introuvable avec l'ID : " + id);
-        }
-        repository.deleteById(id);
-    }
+    // Na77i el khedma el zayda l-okhra elli maktouba l-louta
 }
