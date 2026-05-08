@@ -1,0 +1,14 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copier package.json d'abord (pour cache)
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Copier le code source
+COPY src ./src
+
+EXPOSE 3001
+
+CMD ["node", "src/index.js"]
