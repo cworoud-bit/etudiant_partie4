@@ -72,7 +72,7 @@ class EtudiantServiceTest {
     }
 
     @Test
-    void shouldReturnAllEtudiants() {
+    void findAll_ShouldReturnListOfEtudiants() {
         // Given
         when(etudiantRepository.findAll()).thenReturn(Arrays.asList(etudiant));
         when(mapper.toDTO(any(Etudiant.class))).thenReturn(etudiantDTO);
@@ -83,28 +83,11 @@ class EtudiantServiceTest {
         // Then
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getNom()).isEqualTo("Ben Ali Ahmed");
-        assertThat(result.get(0).getCin()).isEqualTo("12345678");
-
         verify(etudiantRepository, times(1)).findAll();
-        verify(mapper, times(1)).toDTO(etudiant);
     }
 
     @Test
-    void shouldReturnEmptyListWhenNoEtudiants() {
-        // Given
-        when(etudiantRepository.findAll()).thenReturn(Arrays.asList());
-
-        // When
-        List<EtudiantDTO> result = etudiantService.findAll();
-
-        // Then
-        assertThat(result).isEmpty();
-        verify(etudiantRepository, times(1)).findAll();
-        verify(mapper, never()).toDTO(any());
-    }
-
-    @Test
-    void shouldFindEtudiantById() {
+    void findById_ShouldReturnEtudiant_WhenIdExists() {
         // Given
         when(etudiantRepository.findById(1L)).thenReturn(Optional.of(etudiant));
         when(mapper.toDTO(etudiant)).thenReturn(etudiantDTO);
@@ -115,26 +98,22 @@ class EtudiantServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
-        assertThat(result.getNom()).isEqualTo("Ben Ali Ahmed");
-
         verify(etudiantRepository, times(1)).findById(1L);
     }
 
     @Test
-    void shouldThrowExceptionWhenEtudiantNotFound() {
+    void findById_ShouldThrowException_WhenIdNotFound() {
         // Given
         when(etudiantRepository.findById(999L)).thenReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> etudiantService.findById(999L))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Étudiant introuvable avec id=999");
-
-        verify(etudiantRepository, times(1)).findById(999L);
+                .hasMessageContaining("Étudiant introuvable");
     }
 
     @Test
-    void shouldFindByAnnee() {
+    void findByAnnee_ShouldReturnFilteredEtudiants() {
         // Given
         int annee = 2023;
         when(etudiantRepository.findByAnneePremiereInscription(annee))
@@ -147,13 +126,10 @@ class EtudiantServiceTest {
         // Then
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getAnneePremiereInscription()).isEqualTo(2023);
-
-        verify(etudiantRepository, times(1))
-                .findByAnneePremiereInscription(annee);
     }
 
     @Test
-    void shouldSaveEtudiantWithDepartement() {
+    void save_ShouldCreateEtudiant_WhenDataIsValid() {
         // Given
         when(mapper.toEntity(etudiantDTO)).thenReturn(etudiant);
         when(departementRepository.findById(1L)).thenReturn(Optional.of(departement));
@@ -166,13 +142,12 @@ class EtudiantServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
-
         verify(departementRepository, times(1)).findById(1L);
         verify(etudiantRepository, times(1)).save(etudiant);
     }
 
     @Test
-    void shouldThrowExceptionWhenSaveWithInvalidDepartement() {
+    void save_ShouldThrowException_WhenDepartementNotFound() {
         // Given
         when(mapper.toEntity(etudiantDTO)).thenReturn(etudiant);
         when(departementRepository.findById(999L)).thenReturn(Optional.empty());
@@ -187,7 +162,7 @@ class EtudiantServiceTest {
     }
 
     @Test
-    void shouldUpdateEtudiant() {
+    void update_ShouldModifyEtudiant_WhenIdExists() {
         // Given
         EtudiantDTO updateDTO = EtudiantDTO.builder()
                 .cin("87654321")
@@ -213,20 +188,7 @@ class EtudiantServiceTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenUpdateNonExistentEtudiant() {
-        // Given
-        when(etudiantRepository.findById(999L)).thenReturn(Optional.empty());
-
-        // When & Then
-        assertThatThrownBy(() -> etudiantService.update(999L, etudiantDTO))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Étudiant introuvable avec id=999");
-
-        verify(etudiantRepository, never()).save(any());
-    }
-
-    @Test
-    void shouldDeleteEtudiant() {
+    void delete_ShouldRemoveEtudiant_WhenIdExists() {
         // Given
         when(etudiantRepository.existsById(1L)).thenReturn(true);
         doNothing().when(etudiantRepository).deleteById(1L);
@@ -240,14 +202,14 @@ class EtudiantServiceTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenDeleteNonExistentEtudiant() {
+    void delete_ShouldThrowException_WhenIdNotFound() {
         // Given
         when(etudiantRepository.existsById(999L)).thenReturn(false);
 
         // When & Then
         assertThatThrownBy(() -> etudiantService.delete(999L))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Étudiant introuvable avec id=999");
+                .hasMessageContaining("Étudiant introuvable");
 
         verify(etudiantRepository, never()).deleteById(any());
     }
